@@ -1,4 +1,4 @@
-# 🚀 AI-Powered Dynamic Pricing & Revenue Optimization Engine
+# 🚀 AI-Powered Dynamic Pricing & Revenue Optimization Engine 
 
 An AI-driven e-commerce pricing optimization system that analyzes demand, competitor pricing, inventory levels, promotions, and historical sales to recommend revenue-optimized prices.
 
