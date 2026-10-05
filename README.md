@@ -77,6 +77,4 @@ Step-by-step guide for beginners: [SETUP.md](SETUP.md)
 - 📐 Elasticity is assumed constant across prices.
 - 🧱 The top products hit the +8% price cap, so their true optimum may be higher.
 - 🏪 Competitor reactions and inventory limits are not modelled.
-
-
-An earlier version claimed "₹640M revenue uplift". It was flawed: the recommended price just copied the competitor's price, and elasticity was calculated incorrectly. I rebuilt it to optimize profit with proper elasticity, which is why the headline is smaller and more honest.
+- 
