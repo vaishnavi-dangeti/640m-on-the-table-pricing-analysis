@@ -1,122 +1,50 @@
--- AI-POWERED DYNAMIC PRICING & REVENUE OPTIMIZATION ENGINE
--- BUSINESS ANALYSIS USING SQL
+-- ============================================================
+-- DYNAMIC PRICING & PROFIT OPTIMIZATION ENGINE
+-- 02 - BUSINESS ANALYSIS USING SQL (MySQL, synthetic dataset)
+-- ============================================================
 
 USE dynamic_pricing;
 
--- 1. Overall Business Performance
+-- ------------------------------------------------------------
+-- A. DATA QUALITY CHECKS
+-- ------------------------------------------------------------
 
+-- A1. Duplicate transactions (should return no rows)
+SELECT transaction_id, COUNT(*) AS copies
+FROM sales
+GROUP BY transaction_id
+HAVING COUNT(*) > 1;
+
+-- A2. Missing or impossible values (all counts should be 0)
 SELECT
-    COUNT(DISTINCT transaction_id) AS total_transactions,
-    SUM(quantity_sold) AS total_units_sold,
-    ROUND(SUM(revenue), 2) AS total_revenue,
-    ROUND(SUM(gross_profit), 2) AS total_profit
+    SUM(unit_price <= 0)          AS bad_prices,
+    SUM(quantity_sold <= 0)       AS bad_quantities,
+    SUM(competitor_price IS NULL) AS missing_competitor_price,
+    SUM(gross_profit IS NULL)     AS missing_profit
 FROM sales;
 
-
--- 2. Monthly Revenue
-
-SELECT
-    MONTH(date) AS month,
-    ROUND(SUM(revenue), 2) AS revenue,
-    SUM(quantity_sold) AS units_sold
-FROM sales
-GROUP BY MONTH(date)
-ORDER BY month;
-
-
--- 3. Category Performance
-
-SELECT
-    category,
-    SUM(quantity_sold) AS units_sold,
-    ROUND(SUM(revenue), 2) AS revenue,
-    ROUND(SUM(gross_profit), 2) AS profit
-FROM sales
-GROUP BY category
-ORDER BY revenue DESC;
-
-
--- 4. Top 10 Products by Revenue
-
-SELECT
-    s.product_id,
-    p.product_name,
-    p.category,
-    ROUND(SUM(s.revenue), 2) AS revenue,
-    SUM(s.quantity_sold) AS units_sold
+-- A3. Sales priced outside the product's allowed range
+SELECT COUNT(*) AS outside_price_limits
 FROM sales s
-JOIN products p
-    ON s.product_id = p.product_id
-GROUP BY
-    s.product_id,
-    p.product_name,
-    p.category
-ORDER BY revenue DESC
-LIMIT 10;
+JOIN products p ON s.product_id = p.product_id
+WHERE s.unit_price < p.min_price OR s.unit_price > p.max_price;
 
 
--- 5. Our Price vs Competitor Price
+-- ------------------------------------------------------------
+-- B. BUSINESS PERFORMANCE
+-- ------------------------------------------------------------
 
+-- B1. Overall performance
 SELECT
-    s.product_id,
-    p.product_name,
-    ROUND(AVG(s.unit_price), 2) AS our_price,
-    ROUND(AVG(s.competitor_price), 2) AS competitor_price,
-    ROUND(
-        AVG(s.unit_price) - AVG(s.competitor_price),
-        2
-    ) AS price_difference
-FROM sales s
-JOIN products p
-    ON s.product_id = p.product_id
-GROUP BY
-    s.product_id,
-    p.product_name
-ORDER BY price_difference DESC
-LIMIT 10;
+    COUNT(DISTINCT transaction_id)                  AS total_transactions,
+    SUM(quantity_sold)                              AS total_units_sold,
+    ROUND(SUM(revenue), 2)                          AS total_revenue,
+    ROUND(SUM(gross_profit), 2)                     AS total_profit,
+    ROUND(SUM(gross_profit) / SUM(revenue) * 100, 2) AS margin_pct
+FROM sales;
 
-
--- 6. Promotion Performance
-
+-- B2. Monthly revenue and profit
 SELECT
-    promotion_flag,
-    SUM(quantity_sold) AS units_sold,
-    ROUND(SUM(revenue), 2) AS revenue,
-    ROUND(SUM(gross_profit), 2) AS profit
-FROM sales
-GROUP BY promotion_flag;
-
-
--- 7. Inventory Status
-
-SELECT
-    inventory_status,
-    COUNT(DISTINCT product_id) AS product_count,
-    ROUND(AVG(closing_inventory), 0) AS average_inventory
-FROM inventory
-GROUP BY inventory_status
-ORDER BY product_count DESC;
-
-
--- 8. Pricing Opportunities
-
-SELECT
-    s.product_id,
-    p.product_name,
-    p.category,
-    ROUND(AVG(s.unit_price), 2) AS current_price,
-    ROUND(AVG(s.competitor_price), 2) AS competitor_price,
-    CASE
-        WHEN AVG(s.unit_price) > AVG(s.competitor_price)
-            THEN 'Review Price'
-        WHEN AVG(s.unit_price) < AVG(s.competitor_price)
-            THEN 'Competitive Price'
-        ELSE 'Similar Price'
-    END AS pricing_status
-FROM sales s
-JOIN products p
-    ON s.product_id = p.product_id
-GROUP BY
-    s.product_id,
-    p.product_name,
-    p.category;
+    MONTH(date)                  AS month,
+    ROUND(SUM(reven
+    
