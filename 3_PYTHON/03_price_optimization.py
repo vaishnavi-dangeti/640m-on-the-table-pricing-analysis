@@ -1,142 +1,68 @@
-# ============================================================
-# AI-POWERED DYNAMIC PRICING & REVENUE OPTIMIZATION ENGINE
-# PRICE OPTIMIZATION
-# ============================================================
-
+import numpy as np
 import pandas as pd
-
-
-# ------------------------------------------------------------
-# 1. LOAD DATA
-# ------------------------------------------------------------
+import statsmodels.formula.api as smf
 
 sales = pd.read_csv("../1_DATA/sales_data.csv")
 products = pd.read_csv("../1_DATA/products.csv")
-inventory = pd.read_csv("../1_DATA/inventory.csv")
 
-print("Data loaded successfully!")
+sales = sales[(sales.quantity_sold > 0) & (sales.unit_price > 0)].copy()
+sales["unit_cost"] = sales.unit_price - sales.gross_profit / sales.quantity_sold
 
+# 1. Elasticity per product (log-log, controlling for promotions)
+rows = []
+for pid, g in sales.groupby("product_id"):
+    e = np.nan
+    if len(g) >= 30 and g.unit_price.nunique() >= 10:
+        m = smf.ols("np.log(quantity_sold) ~ np.log(unit_price)"
+                    " + promotion_flag", data=g).fit()
+        e = m.params["np.log(unit_price)"]
+    rows.append((pid, e))
+el = pd.DataFrame(rows, columns=["product_id", "raw_elasticity"])
+el = el.merge(sales[["product_id", "category"]].drop_duplicates(), on="product_id")
 
-# ------------------------------------------------------------
-# 2. CREATE PRODUCT SUMMARY
-# ------------------------------------------------------------
+# Unreliable values fall back to the category median
+cat_med = el.groupby("category").raw_elasticity.transform("median")
+el["price_elasticity"] = el.raw_elasticity.where(
+    el.raw_elasticity.between(-5, -0.2), cat_med)
 
-summary = (
-    sales.groupby("product_id")
-    .agg(
-        current_price=("unit_price", "mean"),
-        competitor_price=("competitor_price", "mean"),
-        units_sold=("quantity_sold", "sum"),
-        revenue=("revenue", "sum")
-    )
-    .reset_index()
-)
+# 2. Product summary
+s = (sales.groupby("product_id")
+     .agg(current_price=("unit_price", "mean"),
+          competitor_price=("competitor_price", "mean"),
+          unit_cost=("unit_cost", "median"),
+          units_sold=("quantity_sold", "sum"))
+     .reset_index()
+     .merge(products[["product_id", "product_name", "min_price", "max_price"]],
+            on="product_id", how="left")
+     .merge(el[["product_id", "category", "price_elasticity"]], on="product_id"))
 
+# 3. Test prices, keep the one with the highest profit
+def optimise(r):
+    p0, c, e, q0 = r.current_price, r.unit_cost, r.price_elasticity, r.units_sold
+    base_profit = (p0 - c) * q0
+    best_p, best_profit = p0, base_profit
+    for ch in np.arange(-0.05, 0.0801, 0.005):
+        p = p0 * (1 + ch)
+        p = min(max(p, r.min_price), r.max_price)
+        p = min(p, r.competitor_price * 1.10)       # guardrail
+        profit = (p - c) * q0 * (p / p0) ** e
+        if profit > best_profit:
+            best_p, best_profit = p, profit
+    q1 = q0 * (best_p / p0) ** e
+    return pd.Series({
+        "recommended_price": round(best_p, 2),
+        "volume_change_pct": (q1 / q0 - 1) * 100,
+        "revenue_uplift": best_p * q1 - p0 * q0,
+        "profit_uplift": best_profit - base_profit})
 
-# ------------------------------------------------------------
-# 3. ADD PRODUCT INFORMATION
-# ------------------------------------------------------------
+s = s.join(s.apply(optimise, axis=1))
+s["price_change_pct"] = (s.recommended_price / s.current_price - 1) * 100
+s = s.sort_values("profit_uplift", ascending=False)
 
-summary = summary.merge(
-    products[
-        [
-            "product_id",
-            "product_name",
-            "category",
-            "min_price",
-            "max_price"
-        ]
-    ],
-    on="product_id",
-    how="left"
-)
+print(s[["product_id", "price_elasticity", "price_change_pct",
+         "volume_change_pct", "profit_uplift"]].head(10))
+print("Elasticity range:", s.price_elasticity.min(), s.price_elasticity.max())
+print("Avg price change %:", s.price_change_pct.mean())
+print("Total profit uplift:", s.profit_uplift.sum())
 
-
-# ------------------------------------------------------------
-# 4. SIMPLE PRICE RECOMMENDATION
-# ------------------------------------------------------------
-
-def recommend_price(row):
-
-    price = row["current_price"]
-
-    # If our price is much higher than competitors
-    if price > row["competitor_price"] * 1.05:
-        price = price * 0.97
-
-    # If our price is much lower than competitors
-    elif price < row["competitor_price"] * 0.95:
-        price = price * 1.03
-
-    # Keep price within allowed limits
-    price = max(price, row["min_price"])
-    price = min(price, row["max_price"])
-
-    return round(price, 2)
-
-
-summary["recommended_price"] = summary.apply(
-    recommend_price,
-    axis=1
-)
-
-
-# ------------------------------------------------------------
-# 5. CALCULATE PRICE CHANGE
-# ------------------------------------------------------------
-
-summary["price_change_pct"] = (
-    (summary["recommended_price"] - summary["current_price"])
-    / summary["current_price"]
-) * 100
-
-
-# ------------------------------------------------------------
-# 6. PRICING ACTION
-# ------------------------------------------------------------
-
-summary["pricing_action"] = summary.apply(
-    lambda row:
-        "Decrease Price"
-        if row["recommended_price"] < row["current_price"]
-        else "Increase Price"
-        if row["recommended_price"] > row["current_price"]
-        else "Hold Price",
-    axis=1
-)
-
-
-# ------------------------------------------------------------
-# 7. DISPLAY TOP OPPORTUNITIES
-# ------------------------------------------------------------
-
-opportunities = summary.sort_values(
-    "price_change_pct"
-)
-
-print("\nTop Pricing Opportunities:")
-print(
-    opportunities[
-        [
-            "product_id",
-            "product_name",
-            "current_price",
-            "competitor_price",
-            "recommended_price",
-            "pricing_action"
-        ]
-    ].head(10)
-)
-
-
-# ------------------------------------------------------------
-# 8. SAVE RESULTS
-# ------------------------------------------------------------
-
-summary.to_csv(
-    "../1_DATA/pricing_recommendations.csv",
-    index=False
-)
-
-print("\nPrice optimization completed successfully!")
-print("Pricing recommendations saved.")
+s.to_csv("../1_DATA/pricing_recommendations.csv", index=False)
