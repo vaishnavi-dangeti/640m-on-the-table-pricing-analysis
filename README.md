@@ -95,7 +95,6 @@ python 03_price_optimization.py
 python 04_dashboard_tables.py
 ```
 
-New to Python? Follow the steps in [SETUP.md](SETUP.md).
 
 ## ⚠️ Limitations
 
