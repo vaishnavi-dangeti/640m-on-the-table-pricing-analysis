@@ -1,97 +1,35 @@
-# 🚀 AI-Powered Dynamic Pricing & Revenue Optimization Engine 
+# Dynamic Pricing & Profit Optimization Engine
 
-An AI-driven e-commerce pricing optimization system that analyzes demand, competitor pricing, inventory levels, promotions, and historical sales to recommend revenue-optimized prices.
+Estimates how sensitive demand is to price for each of 500 products, then tests prices to find the most profitable one. **The dataset is synthetic**, so results illustrate the method and are not a forecast of real business performance.
 
-## 🎯 Problem
+## Result
+- **₹270M simulated gross profit uplift**
+- **5.0% average price change** across 500 products
+- Price elasticity ranges from **-4.55 to -0.24**
+- Profit rises even though some units are lost, because each sale earns more
+- [FILL AFTER STEP 4: largest category and its share of uplift]
+- [FILL AFTER STEP 4: % of products priced below competitors]
 
-Static pricing can lead to:
+## Data (synthetic)
+500 products across 5 categories, 100,000 sales records, competitor prices, inventory, promotions and a calendar table, covering 365 days.
 
-- Overpriced products → lost sales
-- Underpriced products → lost margin
-- Excess inventory → higher carrying costs
-- Poor competitive awareness → missed opportunities
+## Method
+1. **SQL** (`2_SQL`): schema, data quality checks and business KPIs.
+2. **Elasticity** (`03_price_optimization.py`): a log-log regression per product of units sold on price, controlling for promotions. Unreliable estimates fall back to the category median.
+3. **Cost**: unit cost is taken from gross profit per unit sold.
+4. **Optimisation**: for each product, prices from -5% to +8% are tested. The price with the highest gross profit is chosen, within the product's price limits and at most 10% above the competitor price.
+5. **Demand model** (`02_demand_prediction.py`): a Random Forest was tested as an exploratory model. It is not used for final prices, because tree models are step-like in price and understate demand loss when prices rise.
+6. **Dashboard** (`4_DASHBOARD`): Power BI report built from the output tables.
 
-This project builds an intelligent pricing engine to support **data-driven pricing decisions**.
+## Limitations
+- Constant elasticity is assumed for each product.
+- Top products hit the +8% cap, so the true optimum may be higher.
+- Competitor reactions and brand effects are not modelled.
+- Monthly values are estimated by applying each product's modelled-to-current ratio to its monthly sales.
+- With real data, estimates would need validation, ideally through price tests.
 
-## 💡 Solution
+## Run it
+See `SETUP.md`.
 
-The system combines historical sales, competitor pricing, inventory, promotions, and seasonal signals to estimate demand and identify an optimal price for each product.
-
-### Core Capabilities
-
-- 📊 Historical sales & demand analysis
-- 🏷️ Competitor price analysis
-- 📦 Inventory pressure analysis
-- 📈 Price elasticity estimation
-- 🤖 Demand prediction
-- 💰 Multi-price revenue optimization
-- 🎯 Product-level pricing recommendations
-- 🔄 What-if pricing scenarios
-
-## 🔄 Pipeline
-
-```text
-Sales + Competitor + Inventory + Promotion Data
-                    ↓
-              Data Exploration
-                    ↓
-             Feature Engineering
-                    ↓
-            Demand Prediction
-                    ↓
-             Price Elasticity
-                    ↓
-            Price Optimization
-                    ↓
-           Recommended Price
-                    ↓
-             Revenue Analysis
-                    ↓
-           Business Recommendation
-
-```
-
-## 🛠️ Tech Stack
-
-**Python** • **SQL** • **Excel** • **Pandas** • **Scikit-learn** • **Power BI** • **GitHub**
-
-## 📊 Simulated Results
-
-| Metric | Result |
-|---|---:|
-| Revenue Improvement | **+8.6%** |
-| Average Margin Improvement | **+6.3%** |
-| Demand Model R² | **0.82** |
-| Demand Prediction MAE | **2.4 units** |
-| Products Evaluated | **50** |
-| Pricing Scenarios Evaluated | **500+** |
-## 🔍 Example AI Recommendation
-
-### Product: Wireless Headphones
-
-| Pricing Factor | Current | AI Recommendation |
-|---|---:|---:|
-| Selling Price | ₹2,499 | **₹2,349** |
-| Competitor Average | ₹2,399 | **₹2,399** |
-| Inventory Level | 1,850 units | **High** |
-| Predicted Demand | 2,100 units | **2,280 units** |
-| Expected Revenue | ₹52.48L | **₹53.56L** |
-| Revenue Impact | — | **+2.1%** |
-
-### 🧠 AI Decision
-
-**Recommended Price: ₹2,349**
-
-The pricing engine identifies **high inventory pressure and meaningful price sensitivity**. It recommends a controlled price reduction to stimulate demand while remaining competitive and improving expected revenue.
-
-> **Decision:** Reduce price by **6.0%** → Expected demand increases → Inventory pressure decreases → Expected revenue improves.
-
-
-
-
-
-               
-      
-
-     
-
+## Tools
+Python (pandas, statsmodels, scikit-learn), SQL (MySQL), Power BI.
