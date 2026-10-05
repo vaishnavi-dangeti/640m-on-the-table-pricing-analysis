@@ -1,14 +1,11 @@
 # ============================================================
-# AI-POWERED DYNAMIC PRICING & REVENUE OPTIMIZATION ENGINE
-# BASIC DATA ANALYSIS
+# DYNAMIC PRICING & PROFIT OPTIMIZATION ENGINE
+# 01 - BASIC DATA ANALYSIS (synthetic dataset)
 # ============================================================
 
 import pandas as pd
 
-# ------------------------------------------------------------
-# 1. LOAD DATA
-# ------------------------------------------------------------
-
+# ---------- 1. LOAD DATA ----------
 sales = pd.read_csv("../1_DATA/sales_data.csv")
 products = pd.read_csv("../1_DATA/products.csv")
 competitors = pd.read_csv("../1_DATA/competitor_prices.csv")
@@ -16,105 +13,68 @@ inventory = pd.read_csv("../1_DATA/inventory.csv")
 
 print("Data loaded successfully!")
 
+# ---------- 2. DATA CHECK ----------
+print("\nDataset sizes (rows, columns)")
+print("Sales:      ", sales.shape)
+print("Products:   ", products.shape)
+print("Competitors:", competitors.shape)
+print("Inventory:  ", inventory.shape)
 
-# ------------------------------------------------------------
-# 2. BASIC DATA CHECK
-# ------------------------------------------------------------
-
-print("\nSales Dataset:")
-print(sales.shape)
-
-print("\nProducts Dataset:")
-print(products.shape)
-
-print("\nCompetitor Dataset:")
-print(competitors.shape)
-
-print("\nInventory Dataset:")
-print(inventory.shape)
-
-
-# ------------------------------------------------------------
-# 3. CHECK MISSING VALUES
-# ------------------------------------------------------------
-
-print("\nMissing Values in Sales Data:")
+print("\nMissing values in sales data:")
 print(sales.isnull().sum())
 
-
-# ------------------------------------------------------------
-# 4. BASIC SALES ANALYSIS
-# ------------------------------------------------------------
-
+# ---------- 3. BUSINESS SUMMARY ----------
 total_revenue = sales["revenue"].sum()
 total_profit = sales["gross_profit"].sum()
 total_units = sales["quantity_sold"].sum()
 
-print("\nBusiness Summary")
+print("\nBusiness summary")
 print("----------------")
-print("Total Revenue:", round(total_revenue, 2))
-print("Total Profit:", round(total_profit, 2))
-print("Total Units Sold:", total_units)
+print("Total revenue:     ", round(total_revenue, 2))
+print("Total gross profit:", round(total_profit, 2))
+print("Gross margin %:    ", round(total_profit / total_revenue * 100, 2))
+print("Total units sold:  ", total_units)
 
-
-# ------------------------------------------------------------
-# 5. CATEGORY PERFORMANCE
-# ------------------------------------------------------------
-
+# ---------- 4. CATEGORY PERFORMANCE ----------
 category_summary = (
     sales.groupby("category")
-    .agg(
-        revenue=("revenue", "sum"),
-        units_sold=("quantity_sold", "sum"),
-        profit=("gross_profit", "sum")
-    )
+    .agg(revenue=("revenue", "sum"),
+         profit=("gross_profit", "sum"),
+         units_sold=("quantity_sold", "sum"))
     .sort_values("revenue", ascending=False)
 )
+category_summary["margin_pct"] = (
+    category_summary.profit / category_summary.revenue * 100
+)
 
-print("\nCategory Performance:")
-print(category_summary)
+print("\nCategory performance:")
+print(category_summary.round(2))
 
-
-# ------------------------------------------------------------
-# 6. TOP 10 PRODUCTS
-# ------------------------------------------------------------
-
+# ---------- 5. TOP 10 PRODUCTS BY CURRENT PROFIT ----------
 top_products = (
     sales.groupby("product_id")
-    .agg(
-        revenue=("revenue", "sum"),
-        units_sold=("quantity_sold", "sum")
-    )
-    .sort_values("revenue", ascending=False)
+    .agg(revenue=("revenue", "sum"),
+         profit=("gross_profit", "sum"),
+         units_sold=("quantity_sold", "sum"))
+    .sort_values("profit", ascending=False)
     .head(10)
 )
 
-print("\nTop 10 Products by Revenue:")
-print(top_products)
+print("\nTop 10 products by current gross profit:")
+print(top_products.round(2))
 
+# ---------- 6. PRICE VS COMPETITORS ----------
+sales["price_gap_pct"] = (
+    sales["unit_price"] / sales["competitor_price"] - 1
+) * 100
 
-# ------------------------------------------------------------
-# 7. AVERAGE PRICE COMPARISON
-# ------------------------------------------------------------
+print("\nAverage price gap vs competitor (%):",
+      round(sales["price_gap_pct"].mean(), 2))
+print("Share of sales priced below competitor (%):",
+      round((sales["price_gap_pct"] < 0).mean() * 100, 2))
 
-sales["price_difference"] = (
-    sales["unit_price"] - sales["competitor_price"]
-)
-
-print("\nAverage Price Difference:")
-print(round(sales["price_difference"].mean(), 2))
-
-
-# ------------------------------------------------------------
-# 8. SAVE ANALYSIS OUTPUT
-# ------------------------------------------------------------
-
-category_summary.to_csv(
-    "../1_DATA/category_summary.csv"
-)
-
-top_products.to_csv(
-    "../1_DATA/top_products.csv"
-)
+# ---------- 7. SAVE ----------
+category_summary.to_csv("../1_DATA/sales_category_summary.csv")
+top_products.to_csv("../1_DATA/sales_top_products.csv")
 
 print("\nAnalysis completed successfully!")
