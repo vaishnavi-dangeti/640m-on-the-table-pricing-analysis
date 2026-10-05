@@ -1,35 +1,82 @@
-# Dynamic Pricing & Profit Optimization Engine
+# 💰 Dynamic Pricing: Profit Optimization
 
-Estimates how sensitive demand is to price for each of 500 products, then tests prices to find the most profitable one. **The dataset is synthetic**, so results illustrate the method and are not a forecast of real business performance.
+**Which product prices should change, by how much, and what does it earn?**
 
-## Result
-- **₹270M simulated gross profit uplift**
-- **5.0% average price change** across 500 products
-- Price elasticity ranges from **-4.55 to -0.24**
-- Profit rises even though some units are lost, because each sale earns more
-- [FILL AFTER STEP 4: largest category and its share of uplift]
-- [FILL AFTER STEP 4: % of products priced below competitors]
 
-## Data (synthetic)
-500 products across 5 categories, 100,000 sales records, competitor prices, inventory, promotions and a calendar table, covering 365 days.
 
-## Method
-1. **SQL** (`2_SQL`): schema, data quality checks and business KPIs.
-2. **Elasticity** (`03_price_optimization.py`): a log-log regression per product of units sold on price, controlling for promotions. Unreliable estimates fall back to the category median.
-3. **Cost**: unit cost is taken from gross profit per unit sold.
-4. **Optimisation**: for each product, prices from -5% to +8% are tested. The price with the highest gross profit is chosen, within the product's price limits and at most 10% above the competitor price.
-5. **Demand model** (`02_demand_prediction.py`): a Random Forest was tested as an exploratory model. It is not used for final prices, because tree models are step-like in price and understate demand loss when prices rise.
-6. **Dashboard** (`4_DASHBOARD`): Power BI report built from the output tables.
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)
 
-## Limitations
-- Constant elasticity is assumed for each product.
-- Top products hit the +8% cap, so the true optimum may be higher.
-- Competitor reactions and brand effects are not modelled.
-- Monthly values are estimated by applying each product's modelled-to-current ratio to its monthly sales.
-- With real data, estimates would need validation, ideally through price tests.
 
-## Run it
-See `SETUP.md`.
 
-## Tools
-Python (pandas, statsmodels, scikit-learn), SQL (MySQL), Power BI.
+
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white)
+
+
+
+
+![Power BI](https://img.shields.io/badge/Power%20BI-F2C811?logo=powerbi&logoColor=black)
+
+
+
+
+![Data](https://img.shields.io/badge/data-synthetic-lightgrey)
+
+
+
+---
+
+## 🎯 Problem
+A retailer sets prices by habit. This project finds the price for each of **500 products** that **maximizes gross profit**, using each product's own price sensitivity (elasticity).
+
+## 📊 Result
+
+| Metric | Value |
+|---|---:|
+| Baseline gross profit | ₹5.32B |
+| **Profit uplift** | **+₹270.4M (+5.1%)** |
+| Revenue change | −₹458.8M (−3.1%) |
+| Avg price change | +4.99% |
+
+💡 **Why profit rises while revenue falls:** most products are price-elastic, but current margins (36%) are below the profit-maximizing level. A small price rise loses some sales but earns more on every unit sold.
+
+📈 Full charts, category breakdown and top products are in the **Power BI dashboard** (`4_DASHBOARD`).
+
+## 🧠 Method
+1. **Elasticity:** for each product, fit `ln(quantity) = a + b·ln(price) + c·promo`. The coefficient `b` is the elasticity.
+2. **Cost:** `unit cost = gross profit ÷ quantity sold`.
+3. **Search:** test price changes from −5% to +8% in 0.5% steps and keep the one with the highest profit.
+4. **Guardrails:** stay within the product's historical price range and never above 110% of the competitor price.
+
+**Example (illustrative):** cost ₹100, price ₹150, 100 units, elasticity −2.
+A 5% price rise gives price ₹157.5 and 90.7 units. Revenue falls from ₹15,000 to ₹14,285, but profit rises from ₹5,000 to ₹5,215.
+
+## 🌲 Why not use the Random Forest for pricing?
+I trained one (R² ≈ 0.69) but kept it out of the pricing step. When price rose from +5% to +10%, it predicted demand going **up** (10.3 → 11.2 units), which is not realistic. Per-product elasticity gives a smooth, explainable demand curve, so it is used for pricing and the forest is exploratory only.
+
+## 🗂️ Structure
+```
+1_DATA        source CSVs + pricing_recommendations.csv (final output)
+2_SQL         schema and business analysis queries (MySQL)
+3_PYTHON      01 explore → 02 demand model → 03 optimize → 04 dashboard tables
+4_DASHBOARD   tables used by Power BI
+```
+
+## 🚀 Run it
+```bash
+pip install -r requirements.txt
+cd 3_PYTHON
+python 01_data_analysis.py
+python 02_demand_prediction.py
+python 03_price_optimization.py
+python 04_dashboard_tables.py
+```
+Step-by-step guide for beginners: [SETUP.md](SETUP.md)
+
+## ⚠️ Limitations
+- 🧪 **Data is synthetic**, so the ₹270M is a simulation of the method, not a real forecast.
+- 📐 Elasticity is assumed constant across prices.
+- 🧱 The top products hit the +8% price cap, so their true optimum may be higher.
+- 🏪 Competitor reactions and inventory limits are not modelled.
+
+## 🔄 Version note
+An earlier version claimed "₹640M revenue uplift". It was flawed: the recommended price just copied the competitor's price, and elasticity was calculated incorrectly. I rebuilt it to optimize profit with proper elasticity, which is why the headline is smaller and more honest.
