@@ -142,37 +142,9 @@ The Power BI dashboard turns the analysis into a business decision tool:
 
 ---
 
-## 📁 Project structure
 
-```
-Do-Discounts-Pay/
-│
-├── 1_DATA/
-├── 3_PYTHON/
-│   ├── 01_prepare_data.py
-│   ├── 02_estimate_elasticity.py
-│   ├── 03_discount_profit.py
-│   └── 04_dashboard_tables.py
-│
-├── 4_DASHBOARD/
-│   ├── PowerBI_Dashboard.pbix
-│   └── dashboard.png
-│
-└── README.md
-```
 
-## ▶️ How to run
 
-1. Download `calendar.csv`, `sell_prices.csv` and `sales_train_evaluation.csv` from the **M5 Forecasting – Accuracy** competition on Kaggle into `1_DATA/`.
-2. Run:
-```bash
-pip install pandas numpy statsmodels
-cd 3_PYTHON
-python 01_prepare_data.py
-python 02_estimate_elasticity.py
-python 03_discount_profit.py
-python 04_dashboard_tables.py
-```
 
 Raw Walmart data is not included because of its size and Kaggle's competition rules.
 
