@@ -148,13 +148,8 @@ The Power BI dashboard turns the analysis into a business decision tool:
 
 Raw Walmart data is not included because of its size and Kaggle's competition rules.
 
----
 
-## ⚠️ Important context
 
-- The dataset doesn't contain product costs, so profit is modeled using margin assumptions.
-- The analysis covers one store, so the dollar estimates shouldn't be generalized to Walmart's entire business.
-- Results are model-based historical estimates, not accounting figures or causal proof.
 
 ---
 
