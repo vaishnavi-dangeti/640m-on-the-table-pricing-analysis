@@ -1,0 +1,8 @@
+dept_id,discount_weeks,avg_discount_pct,elasticity_used,extra_units_pct,revenue_change,share_in_snap_weeks_pct,profit_change_25pct_margin,profit_change_35pct_margin,profit_change_45pct_margin
+FOODS_1,773,12.7,-0.65,10.3,-1097,25.0,-2764,-2542,-2320
+FOODS_2,3795,9.7,-0.56,6.3,-5652,25.8,-11477,-10700,-9924
+FOODS_3,4806,12.0,-0.59,10.1,-20121,25.9,-44122,-40922,-37722
+HOBBIES_1,1420,8.5,0.0,0.0,-6392,26.3,-6392,-6392,-6392
+HOBBIES_2,392,20.6,0.0,0.0,-341,25.8,-341,-341,-341
+HOUSEHOLD_1,1689,9.3,0.0,0.0,-6360,25.7,-6360,-6360,-6360
+HOUSEHOLD_2,1141,11.5,0.0,0.0,-2328,24.7,-2328,-2328,-2328
