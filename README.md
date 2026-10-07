@@ -125,6 +125,12 @@ The Power BI dashboard turns the analysis into a business decision tool:
 
 **Discount impact → Price sensitivity → SNAP effect → Profit impact → Recommendations**
 
+## 📊 Power BI Dashboard
+
+[🔗 View the Power BI Dashboard](https://github.com/vaishnavi-dangeti/Do-Discounts-Pay/blob/main/4_DASHBOARD/MY%20PORTFOLIO%20PROJECT.pbix)
+
+Download the `.pbix` file and open it in Power BI Desktop to explore the dashboard yourself.
+
 <!-- 
 
 ![Dashboard](4_DASHBOARD/dashboard.png)
