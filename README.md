@@ -197,6 +197,4 @@ That is the question this project was built to answer.
 ---
 
 **👩‍💻 Vaishnavi Dangeti**
-Data Analyst | Business Analyst
 Pricing Analytics • Business Intelligence • Statistical Analysis
-October 2026
