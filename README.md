@@ -2,7 +2,7 @@
 
 **More sales ≠ more profit.**
 
-> I analyzed **14,016 real discount weeks** from a Walmart store to answer one question:
+ I analyzed **14,016 real discount weeks** from a Walmart store to answer one question:
 > **Are discounts actually paying for themselves?**
 
 
