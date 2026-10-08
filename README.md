@@ -170,4 +170,4 @@ That is the question this project was built to answer.
 ---
 
 **👩‍💻 Vaishnavi Dangeti**
-Pricing Analytics • Business Intelligence • Statistical Analysis
+Do Discounts Pay? Statistical Analysis • Business Intelligence • Pricing Analytics
